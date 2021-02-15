@@ -21,25 +21,25 @@ import (
 // RetryFunc is a function passed to retry.
 type RetryFunc func(ctx context.Context) error
 
-type retryableError struct {
+type RetryableError struct {
 	err error
 }
 
 // RetryableError marks an error as retryable.
-func RetryableError(err error) error {
+func AsRetryableError(err error) error {
 	if err == nil {
 		return nil
 	}
-	return &retryableError{err}
+	return &RetryableError{err}
 }
 
 // Unwrap implements error wrapping.
-func (e *retryableError) Unwrap() error {
+func (e *RetryableError) Unwrap() error {
 	return e.err
 }
 
 // Error returns the error string.
-func (e *retryableError) Error() string {
+func (e *RetryableError) Error() string {
 	if e.err == nil {
 		return "retryable: <nil>"
 	}
@@ -56,7 +56,7 @@ func Do(ctx context.Context, b Backoff, f RetryFunc) error {
 		}
 
 		// Not retryable
-		var rerr *retryableError
+		var rerr *RetryableError
 		if !errors.As(err, &rerr) {
 			return err
 		}
